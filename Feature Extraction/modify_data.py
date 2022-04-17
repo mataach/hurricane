@@ -13,6 +13,7 @@ def getIndicesNames(directory):
     names = ['Month']
     for filename in os.scandir(directory):
         file_extension = os.path.splitext(filename)[1]
+        if filename.is_file() and file_extension == '.csv':
             names.append(filename.name[:-4])
     return names
 
@@ -36,11 +37,11 @@ def createYearCSV(directory, year):
 
 def getYearData(directory, year, names):
     """
-    Return a dictionary of each years data. Missing values are filled with null
+    Return a dictionary of each years data. Missing values and values=-99.9 are filled with null
     :param directory: year folder created using the `createYearCSV file
     :param year: year to take the data from
     :param names: a list of indices names which will be the features (keys) of the newly created csv file
-    :return: dictionary of the data of that year. fill in missing indices values with null values
+    :return: dictionary of the data of that year
     """
     months = np.arange(1, 13)
     file_name = '{}.csv'.format(year)
@@ -53,6 +54,18 @@ def getYearData(directory, year, names):
         if name not in year_data.keys():
             year_data[name] = [None]*len(months)    # fill in missing indices with null entries
     return year_data
+
+def replaceMissingValues(data):
+    """
+    Replace missing entries filled with -99 values to None
+    :param data: dictionary
+    :return: cleaned dict data
+    """
+    for feature, value in data.items(): data[feature] = np.where(value == -99.99, None, value)
+    for feature, value in data.items(): data[feature] = np.where(value == -99.9, None, value)
+    for feature, value in data.items(): data[feature] = np.where(value == -999, None, value)
+    for feature, value in data.items(): data[feature] = np.where(value == -9999, None, value)
+    return data
 
 def combineData(indices_directory, year_directory, init_year, end_year):
     """
@@ -69,7 +82,9 @@ def combineData(indices_directory, year_directory, init_year, end_year):
         year_data = getYearData(year_directory, year, indices_names)
         for feature, value in year_data.items(): data[feature].append(value)
     data = {feature: np.array(value).flatten() for feature, value in data.items()}
+    data = replaceMissingValues(data)
     return pd.DataFrame.from_dict(data, orient='columns')
+
 
 if __name__ == '__main__':
     root = os.path.abspath(os.getcwd())
@@ -84,8 +99,8 @@ if __name__ == '__main__':
     #     year_data = createYearCSV(indices_directory, year)
     #     year_data.to_csv(os.path.join(year_directory, '{}.csv'.format(year)))
 
-
     data = combineData(indices_directory, year_directory, init_year, end_year)
     data.to_csv(os.path.join(year_directory, 'all_data.csv'))
+
 
 
