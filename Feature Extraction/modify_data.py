@@ -17,6 +17,7 @@ def getIndicesNames(directory):
             names.append(filename.name[:-4])
     return names
 
+
 def createYearCSV(directory, year):
     """
     This function creates a new folder where data is separated by year instead of by sea index
@@ -34,6 +35,7 @@ def createYearCSV(directory, year):
                 feature_vector = list(df.loc[year].to_numpy())
                 features[index_name] = feature_vector
     return pd.DataFrame.from_dict(features, orient='columns')
+
 
 def getYearData(directory, year, names):
     """
@@ -55,6 +57,7 @@ def getYearData(directory, year, names):
             year_data[name] = [None]*len(months)    # fill in missing indices with null entries
     return year_data
 
+
 def replaceMissingValues(data):
     """
     Replace missing entries filled with -99 values to None
@@ -66,6 +69,7 @@ def replaceMissingValues(data):
     for feature, value in data.items(): data[feature] = np.where(value == -999, None, value)
     for feature, value in data.items(): data[feature] = np.where(value == -9999, None, value)
     return data
+
 
 def combineData(indices_directory, year_directory, init_year, end_year):
     """
